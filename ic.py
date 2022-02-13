@@ -64,22 +64,18 @@ req = rq.session()
 req.headers = {
     'user-agent': 'shabi'
 }
-def sct(cookie):
-    md5 = hl.md5(cookie.encode()).hexdigest()
-    md5_a = md5[:15]
-    md5_b = md5[17:]
-    sha1 = hl.sha1((md5_a+'Qi'+md5_b).encode()).hexdigest()
-    req.cookies.set('ICNet[sct]', sha1)
 for cookie in browser.get_cookies():
     if cookie['name'] == 'ICNet[sct]':
         # sct(cookie['value'])
         continue
     req.cookies.set(cookie['name'], cookie['value'])
+browser.close()
 # if  "ICNet[sct]" not in req.cookies.keys():
 fuck = {
     'rnns':'rnns/[\d\D]*="([A-Za-z0-9]+)"',
     'rind':'rind=/[\d\D]*/([1-9]\d*)/[\d\D]*;',
 }
+
 def cuoda(source):
     data = {}
     cookie = req.cookies['ICNet[sct]']
@@ -102,12 +98,18 @@ def cuoda(source):
 
     except:
         print('正则失败?')
+
 while True:
     try:
-        input()
-        text = req.get('https://www.ic.net.cn/search/STM32F103C8T6.html').text
+        n = input()
+        req.cookies.set('ICNet[sct]', None)
+        text = req.get(f'https://www.ic.net.cn/search/{n}.html').text
         cuoda(text)
-        print(req.get('https://www.ic.net.cn/search/STM32F103C8T6.html').text)
+        text = req.get(f'https://www.ic.net.cn/search/{n}.html').text
+        data = etree.HTML(text)
+        company = data.xpath('//*[@id="resultList"]/li/div[@class="result_id" and span]/span[@onclick]/@onclick')
+        for i in company:
+            print(i)
     except Exception as e:
         print(e)
         pass
